@@ -1,0 +1,31 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+
+collections:
+  - name: "library"
+    label: "Prompt Library"
+    files:
+      - name: "library"
+        label: "Library Data"
+        file: "content/library.json"
+        format: "json"
+        fields:
+          - { label: "Master Prompt", name: "masterPrompt", widget: "text" }
+          - label: "Modes"
+            name: "modes"
+            widget: "list"
+            fields:
+              - { label: "ID", name: "id", widget: "string" }
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Icon", name: "icon", widget: "string" }
+              - { label: "Category", name: "category", widget: "string" }
+              - { label: "Command", name: "command", widget: "string" }
+              - { label: "Description", name: "desc", widget: "text" }
+              - { label: "Tags", name: "tags", widget: "list", required: false }
+              - { label: "How To", name: "how", widget: "list", required: false }
+              - { label: "Examples", name: "examples", widget: "text", required: false }
+              - { label: "Prompt", name: "prompt", widget: "text" }

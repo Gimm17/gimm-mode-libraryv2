@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gimm Mode Library</title>
+    <meta name="description" content="Gimm Mode Library — pilih mode, copy prompt, jalan.">
+
+    <!-- Optional: PWA (boleh ditambah nanti) -->
+    <!-- <link rel="manifest" href="./manifest.webmanifest"> -->
+    <meta name="theme-color" content="#0a0a0a">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .card-hover {
+            transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, .25);
+        }
+
+        .btn-press {
+            transition: transform .08s ease, filter .18s ease;
+        }
+
+        .btn-press:active {
+            transform: scale(.98);
+        }
+
+        .fade-in {
+            animation: fadeIn .25s ease-out both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast {
+            animation: toastIn .25s ease-out both;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        :root {
+            color-scheme: dark;
+        }
+
+        [data-theme="light"] {
+            color-scheme: light;
+        }
+
+        [data-theme="light"] body {
+            background: #fafafa;
+            color: #0a0a0a;
+        }
+
+        .panel-dark {
+            background: rgba(255, 255, 255, .05);
+        }
+
+        .border-soft {
+            border-color: rgba(255, 255, 255, .10);
+        }
+
+        .muted {
+            color: rgba(255, 255, 255, .65);
+        }
+
+        [data-theme="light"] .panel-dark {
+            background: rgba(0, 0, 0, .03);
+        }
+
+        [data-theme="light"] .border-soft {
+            border-color: rgba(0, 0, 0, .08);
+        }
+
+        [data-theme="light"] .muted {
+            color: rgba(0, 0, 0, .60);
+        }
+
+        /* FIX: dropdown dark mode (select + option list) */
+        select.gimm-select {
+            background: rgba(255, 255, 255, .06);
+            color: rgba(255, 255, 255, .92);
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        select.gimm-select option {
+            background: #0b0b0f;
+            color: rgba(255, 255, 255, .95);
+        }
+
+        [data-theme="light"] select.gimm-select {
+            background: rgba(0, 0, 0, .03);
+            color: #0a0a0a;
+            border: 1px solid rgba(0, 0, 0, .10);
+        }
+
+        [data-theme="light"] select.gimm-select option {
+            background: #ffffff;
+            color: #0a0a0a;
+        }
+
+        /* Card entrance */
+        .card-enter {
+            animation: cardIn .28s ease-out both;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Shiny tiny hover for chips */
+        .chip-btn {
+            transition: transform .12s ease, background-color .18s ease;
+        }
+
+        .chip-btn:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-zinc-950 text-zinc-100">
+    <!-- Top bar -->
+    <header class="sticky top-0 z-40 backdrop-blur bg-zinc-950/70 border-b border-soft">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <!-- Easter egg admin: click logo 7x -> go /admin (real login handled by Netlify Identity) -->
+                <button id="brandBtn"
+                    class="btn-press w-10 h-10 rounded-2xl panel-dark border border-soft flex items-center justify-center select-none"
+                    title="Gimm Mode Library">
+                    <span class="text-xl">🗂️</span>
+                </button>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Gimm Mode Library</h1>
+                    <p class="text-xs muted">Pilih mode → copy prompt → jalan. Sesimpel itu.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="btnTheme" class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">
+                    🌙 Dark
+                </button>
+                <button id="btnAbout" class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">
+                    About
+                </button>
+                <a href="#cara-pakai" class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">
+                    Cara Pakai
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="max-w-6xl mx-auto px-4 pt-10 pb-6">
+        <div class="grid lg:grid-cols-2 gap-6 items-center">
+            <div class="fade-in">
+                <h2 class="text-3xl md:text-4xl font-extrabold leading-tight">
+                    Yoo gess 😼 ini kumpulan “mode prompt” punya Gimm.
+                </h2>
+                <p class="mt-3 text-zinc-200">
+                    Tinggal pilih mode yang kamu butuhin (ngoding / skripsi / desain / AI / dll),
+                    terus <span class="font-semibold">Copy Prompt</span> atau <span class="font-semibold">Use
+                        Prompt</span>.
+                    Udah, beres.
+                </p>
+
+                <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                    <label class="flex-1">
+                        <span class="text-xs muted">Cari mode</span>
+                        <input id="searchInput"
+                            class="mt-1 w-full px-4 py-3 rounded-2xl panel-dark border border-soft focus:outline-none focus:ring-2 focus:ring-white/20"
+                            placeholder="contoh: bot, jurnal, cinematic, statistik, dataset..." autocomplete="off" />
+                    </label>
+
+                    <label class="sm:w-56">
+                        <span class="text-xs muted">Filter</span>
+                        <select id="filterSelect"
+                            class="gimm-select mt-1 w-full px-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/20">
+                            <option value="all">Semua</option>
+                            <option value="pinned">📌 Pinned</option>
+                            <option value="favorites">⭐ Favorites</option>
+                            <option value="coding">Coding / System</option>
+                            <option value="academic">Academic</option>
+                            <option value="design">Design / Visual</option>
+                            <option value="ml">AI / ML</option>
+                            <option value="writing">Writing</option>
+                            <option value="data">Data / Stats</option>
+                            <option value="product">Product</option>
+                            <option value="research">Literature</option>
+                        </select>
+                    </label>
+
+                    <label class="sm:w-56">
+                        <span class="text-xs muted">Urutkan</span>
+                        <select id="sortSelect"
+                            class="gimm-select mt-1 w-full px-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/20">
+                            <option value="smart">Smart (Pinned/Fav dulu)</option>
+                            <option value="newest">🆕 Terbaru</option>
+                            <option value="popular">🔥 Populer</option>
+                            <option value="name">A–Z</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="mt-4 text-xs muted">
+                    “Use Prompt” itu auto-copy dulu, lalu buka ChatGPT. Kamu tinggal paste.
+                </div>
+
+                <div id="statusBar" class="mt-3 text-xs muted"></div>
+
+                <div class="mt-3">
+                    <div class="text-xs muted">Quick tags (klik buat cari cepat)</div>
+                    <div id="tagChips" class="mt-2 flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+
+            <div class="fade-in">
+                <div class="rounded-3xl panel-dark border border-soft p-5">
+                    <div class="flex items-center justify-between">
+                        <p class="font-semibold">Quick Buttons</p>
+                        <span class="text-xs muted">master control</span>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <button id="copyMasterBtn"
+                            class="btn-press px-3 py-2 rounded-xl bg-white text-black text-sm font-semibold hover:opacity-90">
+                            Copy Master Control
+                        </button>
+                        <button id="useMasterBtn"
+                            class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">
+                            Use Master Control
+                        </button>
+                        <button id="copyCIBtn"
+                            class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">
+                            Copy Custom Instructions
+                        </button>
+                        <button id="exportJsonBtn"
+                            class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">
+                            Export JSON
+                        </button>
+                    </div>
+
+                    <p class="mt-4 text-xs muted">
+                        Kalau kamu baru pertama kali: copy “Custom Instructions” dulu biar mode systemnya kebawa tiap
+                        chat.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Highlights -->
+    <section class="max-w-6xl mx-auto px-4 pb-6">
+        <div class="grid md:grid-cols-2 gap-3">
+            <div class="rounded-3xl panel-dark border border-soft p-5">
+                <div class="flex items-center justify-between">
+                    <p class="font-semibold">🔥 Populer (di device kamu)</p>
+                    <span class="text-xs muted">berdasarkan pemakaian</span>
+                </div>
+                <div id="popularRow" class="mt-3 flex flex-wrap gap-2"></div>
+            </div>
+            <div class="rounded-3xl panel-dark border border-soft p-5">
+                <div class="flex items-center justify-between">
+                    <p class="font-semibold">🆕 Terbaru</p>
+                    <span class="text-xs muted">urut dari data library</span>
+                </div>
+                <div id="newestRow" class="mt-3 flex flex-wrap gap-2"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cards -->
+    <main class="max-w-6xl mx-auto px-4 pb-10">
+        <div id="cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </main>
+
+    <!-- Cara Pakai -->
+    <section id="cara-pakai" class="max-w-6xl mx-auto px-4 pb-16">
+        <div class="rounded-3xl panel-dark border border-soft p-6">
+            <h3 class="text-xl font-bold">Cara Pakai (biar gak bingung)</h3>
+
+            <ol class="mt-3 space-y-2 list-decimal pl-5 text-zinc-200">
+                <li><b>Copy Custom Instructions</b> (tombol di atas) → paste ke Settings ChatGPT kamu.</li>
+                <li>Pilih mode di kartu (misalnya <b>ATLAS</b> buat skripsi).</li>
+                <li>Klik <b>Copy Prompt</b> (atau <b>Use Prompt</b> biar auto-copy + kebuka ChatGPT).</li>
+                <li>Paste prompt itu sebagai pesan pertama, lalu tulis task kamu.</li>
+            </ol>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-3">
+                <div class="rounded-2xl border border-soft p-4">
+                    <p class="font-semibold">Contoh cepat</p>
+                    <pre class="mt-2 text-xs whitespace-pre-wrap panel-dark border border-soft rounded-2xl p-3">Mode: ATLAS
+Detail: MAX
+Output: OUTLINE
+Bantu susun BAB 1–3 skripsi cyberbullying.</pre>
+                </div>
+                <div class="rounded-2xl border border-soft p-4">
+                    <p class="font-semibold">Tips</p>
+                    <ul class="mt-2 text-sm muted list-disc pl-5 space-y-1">
+                        <li>Pakai <b>Detail: BASIC</b> kalau mau cepat.</li>
+                        <li>Pakai <b>Detail: MAX</b> kalau lagi serius.</li>
+                        <li>Pakai <b>Output:</b> (CODE/OUTLINE/PROMPTS) biar hasilnya pas.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal -->
+    <div id="modalBackdrop" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm">
+        <div class="min-h-screen flex items-end sm:items-center justify-center p-3">
+            <div class="w-full max-w-3xl rounded-3xl border border-soft bg-zinc-950 p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h3 id="modalTitle" class="text-xl font-bold"></h3>
+                        <p id="modalDesc" class="text-sm muted mt-1"></p>
+                        <div id="modalTags" class="flex flex-wrap gap-2 mt-3"></div>
+                    </div>
+                    <button id="closeModal" class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft">
+                        ✕
+                    </button>
+                </div>
+
+                <div class="mt-4 grid gap-3">
+                    <div class="rounded-2xl border border-soft panel-dark p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <p class="text-sm font-semibold">Prompt (Full)</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button id="favBtn"
+                                    class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">⭐
+                                    Favorite</button>
+                                <button id="pinBtn"
+                                    class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">📌
+                                    Pin</button>
+                                <button id="copyCommandBtn"
+                                    class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">Copy
+                                    Mode Command</button>
+                                <button id="copyLinkBtn"
+                                    class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">Copy
+                                    Link</button>
+                                <button id="shareBtn"
+                                    class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">Share</button>
+                            </div>
+                        </div>
+
+                        <textarea id="modalPrompt"
+                            class="mt-2 w-full h-64 p-3 rounded-2xl bg-black/40 border border-soft text-xs leading-relaxed focus:outline-none"></textarea>
+
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button id="copyPromptBtn"
+                                class="btn-press px-3 py-2 rounded-xl bg-white text-black text-sm font-semibold hover:opacity-90">
+                                Copy Prompt
+                            </button>
+                            <button id="usePromptBtn"
+                                class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">
+                                Use Prompt (auto-copy → ChatGPT)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-soft panel-dark p-4">
+                        <p class="text-sm font-semibold">Cara Pakai</p>
+                        <ul id="modalHow" class="mt-2 text-sm text-zinc-200 list-disc pl-5 space-y-1"></ul>
+
+                        <p class="mt-3 text-sm font-semibold">Contoh</p>
+                        <pre id="modalExamples"
+                            class="mt-2 text-xs bg-black/40 border border-soft rounded-2xl p-3 overflow-auto"></pre>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-xs muted">
+                    Tips: “Use Prompt” auto-copy dulu. Jadi tinggal paste, gak drama.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutBackdrop" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm">
+        <div class="min-h-screen flex items-end sm:items-center justify-center p-3">
+            <div class="w-full max-w-2xl rounded-3xl border border-soft bg-zinc-950 p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h3 class="text-xl font-bold">About Gimm Mode Library</h3>
+                        <p class="text-sm muted mt-1">Biar semua orang bisa pakai “mode prompt” tanpa ribet.</p>
+                    </div>
+                    <button id="closeAbout" class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft">✕</button>
+                </div>
+
+                <div class="mt-4 space-y-3 text-sm text-zinc-200">
+                    <p>
+                        Ini tuh semacam <b>toolkit prompt</b>. Kamu tinggal pilih mode, copy, paste ke ChatGPT,
+                        terus gas kerjain task kamu.
+                    </p>
+                    <div class="rounded-2xl border border-soft panel-dark p-4">
+                        <p class="font-semibold">Kenapa “Use Prompt” auto-copy?</p>
+                        <p class="mt-1 muted">Biar kompatibel di HP/desktop. Prefill link ChatGPT kadang ngambek, jadi yang paling aman: copy dulu, baru buka ChatGPT.</p>
+                    </div>
+                    <div class="rounded-2xl border border-soft panel-dark p-4">
+                        <p class="font-semibold">Creator mode (admin)</p>
+                        <p class="mt-1 muted">Klik logo 🗂️ 7x → masuk /admin. Edit prompt cuma buat creator (login Netlify).</p>
+                    </div>
+                    <div class="rounded-2xl border border-soft panel-dark p-4">
+                        <p class="font-semibold">Share</p>
+                        <p class="mt-1 muted">Buka satu mode → Copy Link / Share → kirim ke temen, mereka tinggal copy prompt-nya.</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <a href="#cara-pakai" class="btn-press px-3 py-2 rounded-xl bg-white text-black text-sm font-semibold hover:opacity-90">Cara Pakai</a>
+                    <button id="copySiteLinkBtn" class="btn-press px-3 py-2 rounded-xl panel-dark border border-soft text-sm">Copy Site Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toastWrap" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[80] hidden"></div>
+
+    <script src="./data.js"></script>
+    <script src="./app.js"></script>
+</body>
+
+</html>
