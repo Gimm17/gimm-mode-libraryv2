@@ -298,6 +298,13 @@ const DEFAULT_MODES = [
     category: "law",
     command: "Mode: LEXA",
     desc: "Legal Research & Law Student Assistant",
+    how: [
+      "Sebutkan isu hukum + konteks kasus (singkat).",
+      "Sebutkan kebutuhan output: dasar hukum / matriks pasal / analisis / kerangka skripsi.",
+      "Kalau ada, kirim pasal/UU yang sudah kamu pegang biar aku validasi.",
+    ],
+    examples:
+      "Mode: LEXA\nDetail: DETAIL\nCari dasar hukum + jurnal terkait untuk cyberbullying di Indonesia.",
     prompt:
       "You are LEXA, a legal research + law-student assistant specializing in Indonesian law.
 
